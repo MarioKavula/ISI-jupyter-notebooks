@@ -1,0 +1,268 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "transparent-impossible",
+   "metadata": {},
+   "source": [
+    "# Predikcia kvality vína\n",
+    "V tomto cvičení preskúmame, ako použiť strojové učenie na predikciu kvality vína na základe jeho chemických vlastností. Prejdeme si základné kroky pracovného postupu strojového učenia vrátane načítania dát, predspracovania, trénovania modelu a hodnotenia.\n",
+    "\n",
+    "## Časť 1: Načítanie dát\n",
+    "Najprv musíme načítať náš dataset. Použijeme dataset kvality vína, ktorý obsahuje chemické vlastnosti vína a hodnotenie kvality.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Pri načítaní dát použite knižnicu Pandas. Funkcia `read_csv` je užitočná na načítanie dát z CSV súborov.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "important-letter",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "\n",
+    "# Načítanie datasetu\n",
+    "wine_data = pd.read_csv('data/winequality-red.csv', sep=';')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "approved-basement",
+   "metadata": {},
+   "source": [
+    "Úloha: Zobrazte prvých 5 riadkov datasetu, aby ste pochopili jeho štruktúru. Použite `wine_data.head()`.\n",
+    "\n",
+    "Reflexná otázka: Prečo je dôležité preskúmať dáta pred ich ďalším spracovaním? Ako môže formát dát ovplyvniť ich načítanie?\n",
+    "\n",
+    "## Časť 2: Prieskum dát\n",
+    "Predtým, než prejdeme na predspracovanie dát, preskúmajme trochu náš dataset.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Vizualizácia distribúcie cieľovej premennej môže poskytnúť užitočné informácie o jej rozložení. Použite knižnicu Seaborn na vykreslenie grafu.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "rational-spectacular",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Zobrazenie základných informácií o datasete\n",
+    "wine_data.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "opposite-inside",
+   "metadata": {},
+   "source": [
+    "Úloha: Vykreslite distribúciu premennej 'quality', aby ste videli, ako je distribuovaná kvalita vína. Použite knižnice ako `matplotlib` alebo `seaborn` pre vizualizáciu.\n",
+    "\n",
+    "Reflexná otázka: Aké zistenia ste urobili z vizualizácie distribúcie kvality vína? Ako by tieto informácie mohli ovplyvniť výber a trénovanie modelu strojového učenia?\n",
+    "\n",
+    "## Časť 3: Predspracovanie dát\n",
+    "### Riešenie chýbajúcich hodnôt\n",
+    "Najprv skontrolujeme chýbajúce hodnoty a zaoberáme sa nimi, ak nejaké sú."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "international-holiday",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Kontrola chýbajúcich hodnôt\n",
+    "wine_data.isnull().sum()\n",
+    "\n",
+    "# Ak sú nejaké chýbajúce hodnoty, môžeme ich vyplniť priemerom alebo mediánom stĺpca"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "norwegian-decade",
+   "metadata": {},
+   "source": [
+    "### Škálovanie prvkov\n",
+    "Mnoho modelov strojového učenia lepšie funguje, keď sú vstupné numerické premenné škálované alebo normalizované.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Pred trénovaním modelu je často potrebné dáta normalizovať alebo škálovať. Použite `StandardScaler` z knižnice Scikit-learn na škálovanie funkcií.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "successful-uzbekistan",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.preprocessing import StandardScaler\n",
+    "\n",
+    "# Definícia prvkov a cieľa\n",
+    "X = wine_data.drop('quality', axis=1)\n",
+    "y = wine_data['quality']\n",
+    "\n",
+    "# Škálovanie prvkov\n",
+    "scaler = StandardScaler()\n",
+    "X_scaled = scaler.fit_transform(X)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "exposed-highland",
+   "metadata": {},
+   "source": [
+    "Úloha: Škálovajte prvky a overte to zobrazením prvých 5 riadkov škálovaných prvkov.\n",
+    "\n",
+    "Reflexná otázka: Prečo je škálovanie prvkov dôležité pri trénovaní modelov strojového učenia? Ako by mohlo ovplyvniť výsledky, keby sme dáta neškálovali?\n",
+    "\n",
+    "## Časť 4: Rozdelenie datasetu\n",
+    "Rozdelíme dataset na trénovaciu a testovaciu množinu.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Rozdelenie dát na trénovaciu a testovaciu sadu pomáha overiť, ako dobre model funguje na nevidených dátach.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "stone-initial",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.model_selection import train_test_split\n",
+    "\n",
+    "X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "occasional-dollar",
+   "metadata": {},
+   "source": [
+    "Reflexná otázka: Ako pomáha rozdelenie dát na trénovaciu a testovaciu sadu zabrániť problému pretrénovania? Aký vplyv by malo  použitie príliš veľkej časti dát na trénovanie?\n",
+    "\n",
+    "## Časť 5: Trénovanie modelu\n",
+    "Použijeme model Random Forest na predikciu kvality vína.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Random Forest je populárny model pre klasifikačné úlohy. Skúste ho použiť a sledujte, ako sa model učí z trénovacích dát.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "beginning-lingerie",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.ensemble import RandomForestClassifier\n",
+    "\n",
+    "# Inicializácia modelu\n",
+    "model = RandomForestClassifier(random_state=42)\n",
+    "\n",
+    "# Trénovanie modelu\n",
+    "model.fit(X_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "exciting-hardware",
+   "metadata": {},
+   "source": [
+    "Úloha: Natrénujte model a vypíšte skóre trénovania.\n",
+    "\n",
+    "Reflexná otázka: Prečo sme si vybrali model Random Forest pre túto úlohu? Aké sú jeho výhody oproti iným modelom, ktoré poznáte?\n",
+    "\n",
+    "## Časť 6: Hodnotenie modelu\n",
+    "Nakoniec, poďme zhodnotiť náš model na testovacej množine.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Na hodnotenie modelu použite metriky ako presnosť a správu o klasifikácii. Tieto metriky poskytujú prehľad o výkone modelu.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "blessed-classification",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.metrics import accuracy_score, classification_report\n",
+    "\n",
+    "# Predikcia na testovacej množine\n",
+    "y_pred = model.predict(X_test)\n",
+    "\n",
+    "# Hodnotenie modelu\n",
+    "print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+    "print(\"\\nClassification Report:\\n\", classification_report(y_test, y_pred))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "other-warrant",
+   "metadata": {},
+   "source": [
+    "Úloha: Ohodnoťte výkonnosť modelu a zvážte experimentovanie s rôznymi modelmi alebo technikami predspracovania, aby ste videli, či môžete zlepšiť presnosť.\n",
+    "\n",
+    "Reflexná otázka: Ako hodnotíte výkon modelu Random Forest na základe výsledkov? Sú miesta, kde by model mohol byť zlepšený?\n",
+    "\n",
+    "## Časť 7: Experimentovanie a záver\n",
+    "Vyskúšajte si rôzne modely strojového učenia, techniky predspracovania alebo metódy inžinierstva prvkov na zlepšenie výkonnosti modelu.\n",
+    "\n",
+    "Úloha: Vyberte aspoň jeden nový model na trénovanie a porovnajte jeho výkonnosť s modelom Random Forest. Zdokumentujte svoje zistenia a závery.\n",
+    "\n",
+    "<details>\n",
+    "  <summary>Hint (click to expand)</summary>\n",
+    "  Skúste rôzne strojové učenie modely, techniky predspracovania alebo metódy inžinierstva prvkov na zlepšenie výkonnosti modelu.\n",
+    "</details>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "logical-stroke",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
