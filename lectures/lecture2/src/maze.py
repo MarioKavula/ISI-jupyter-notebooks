@@ -1,58 +1,73 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import colors
+import random
 
-# Define the maze as a NumPy array: 1 for walls, 0 for paths
-maze = np.array([
-    [1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1],
-    [1, 1, 1, 1, 1]
-])
+class Maze:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.grid = np.zeros((height, width), dtype=int)
+        self.start_pos = (1, 1)
+        self.end_pos = (height - 2, width - 2)
 
-# Define a function to visualize the maze
-def draw_maze(maze, visited=None):
-    if visited is None:
-        visited = []
+    def generate_maze(self):
+        self.grid.fill(1)
+        x, y = self.start_pos
+        self.grid[x][y] = 0
+        stack = [(x, y)]
 
-    # Create a colormap for the maze
-    cmap = colors.ListedColormap(['white', 'black', 'blue'])
-    # Create a 'color' matrix
-    color_matrix = np.zeros((maze.shape[0], maze.shape[1]), dtype=int)
-    for row, col in visited:
-        color_matrix[row, col] = 2  # Blue for visited cells
-    
-    # Assign 1 for walls and 0 for paths
-    color_matrix[maze == 1] = 1
+        while stack:
+            cell = []
+            if x + 2 < self.height - 1 and self.grid[x + 2][y] == 1:
+                cell.append("down")
+            if x - 2 > 0 and self.grid[x - 2][y] == 1:
+                cell.append("up")
+            if y + 2 < self.width - 1 and self.grid[x][y + 2] == 1:
+                cell.append("right")
+            if y - 2 > 0 and self.grid[x][y - 2] == 1:
+                cell.append("left")
 
-    plt.figure(figsize=(5, 5))
-    plt.imshow(color_matrix, cmap=cmap)
-    plt.xticks([]), plt.yticks([])  # Hide the axes ticks
-    plt.show()
+            if len(cell) > 0:
+                cell_chosen = (random.choice(cell))
 
-# Dummy function for path-finding, replace with actual path-finding
-def find_path(maze, start, end):
-    path = []
-    visited = []
-    stack = [start]
-    
-    while stack:
-        current = stack.pop()
-        if current == end:
-            break
-        visited.append(current)
-        # ... (path-finding logic here, add new positions to stack) ...
-        
-        # Update the visualization
-        draw_maze(maze, visited)
-        plt.pause(0.5)  # Pause for half a second
-        
-    return path
+                if cell_chosen == "right":
+                    self.grid[x][y + 1] = 0
+                    self.grid[x][y + 2] = 0
+                    y = y + 2
+                elif cell_chosen == "left":
+                    self.grid[x][y - 1] = 0
+                    self.grid[x][y - 2] = 0
+                    y = y - 2
+                elif cell_chosen == "down":
+                    self.grid[x + 1][y] = 0
+                    self.grid[x + 2][y] = 0
+                    x = x + 2
+                elif cell_chosen == "up":
+                    self.grid[x - 1][y] = 0
+                    self.grid[x - 2][y] = 0
+                    x = x - 2
 
-# Start and end positions
-start = (1, 1)
-end = (3, 3)
+                stack.append((x, y))
+            else:
+                x, y = stack.pop()
 
-# Visualize the path-finding
-find_path(maze, start, end)
+        self.grid[self.end_pos] = 0
+
+    def display(self):
+        plt.imshow(self.grid, cmap='Blues')
+        plt.show()
+
+class Player:
+    def __init__(self, start_pos):
+        self.position = start_pos
+
+    def move(self, direction, maze):
+        x, y = self.position
+        if direction == "up" and maze.grid[x - 1][y] == 0:
+            self.position = (x - 1, y)
+        elif direction == "down" and maze.grid[x + 1][y] == 0:
+            self.position = (x + 1, y)
+        elif direction == "left" and maze.grid[x][y - 1] == 0:
+            self.position = (x, y - 1)
+        elif direction == "right" and maze.grid[x][y + 1] == 0:
+            self.position = (x, y + 1)
