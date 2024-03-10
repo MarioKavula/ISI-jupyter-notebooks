@@ -14,9 +14,9 @@ class Maze:
         self.visited = set()
 
     def generate_maze(self):
-        self.grid.fill(1)
+        self.grid.fill(1)  # Fill the maze with walls
         x, y = self.start_pos
-        self.grid[x][y] = 0
+        self.grid[x][y] = 0  # Mark the start position as a path
         stack = [(x, y)]
 
         while stack:
@@ -54,7 +54,29 @@ class Maze:
             else:
                 x, y = stack.pop()
 
-        self.grid[self.end_pos] = 0
+        self.end_pos = (x, y)  # Update the end position to the last cell visited
+        self.grid[self.end_pos] = 0  # Ensure it's marked as a path
+    
+    def display(self, player_pos=None):
+
+        # Create a colormap for different elements in the maze
+        cmap = mpl.colors.ListedColormap(['white', 'black', 'red', 'blue', 'green'])
+        bounds = [0, 0.5, 1.5, 2.5, 3.5, 4]
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+
+        # Create a copy of the grid to modify for display
+        display_grid = np.copy(self.grid)
+        for pos in self.visited:
+            display_grid[pos] = 2  # Mark visited paths
+        display_grid[self.start_pos] = 3  # Mark the start position
+        display_grid[self.end_pos] = 4  # Mark the end position
+
+        if player_pos:
+            display_grid[player_pos] = 1  # Mark the player's position
+
+        plt.imshow(display_grid, cmap=cmap, norm=norm)
+        plt.xticks([]), plt.yticks([])
+        plt.show()
 
     def mark_visited(self, pos):
         if self.grid[pos] == 0:
@@ -62,23 +84,6 @@ class Maze:
     
     def has_reached_goal(self, current_pos):
         return current_pos == self.end_pos
-
-    def display(self, player_pos=None):
-        # Make a copy of the colormap instead of modifying the global colormap directly
-        cmap = copy.copy(mpl.cm.get_cmap("Blues"))
-        cmap.set_bad(color='red')
-
-        masked_grid = np.ma.masked_where(self.grid == 0, self.grid)
-        for pos in self.visited:
-            if pos != self.start_pos and pos != self.end_pos:
-                masked_grid[pos] = 0.5
-
-        if player_pos:
-            masked_grid[player_pos] = np.ma.masked
-
-        plt.imshow(masked_grid, cmap=cmap, interpolation='none')
-        plt.xticks([]), plt.yticks([])
-        plt.show()
 
     def get_possible_moves(self, current_pos):
         x, y = current_pos
