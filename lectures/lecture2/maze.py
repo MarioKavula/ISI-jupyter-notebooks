@@ -56,6 +56,7 @@ class Maze:
 
         self.end_pos = (x, y)  # Update the end position to the last cell visited
         self.grid[self.end_pos] = 0  # Ensure it's marked as a path
+        print(self.grid)
     
     def display(self, player_pos=None):
 
