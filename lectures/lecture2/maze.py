@@ -10,7 +10,7 @@ class Maze:
         self.height = height
         self.grid = np.zeros((height, width), dtype=int)
         self.start_pos = (1, 1)
-        self.end_pos = (height - 1, width - 1)
+        self.end_pos = (height - 2, width - 2)
         self.visited = set()
 
     def generate_maze(self):
@@ -59,23 +59,19 @@ class Maze:
         print(self.grid)
     
     def display(self, player_pos=None):
+        # Make a copy of the colormap instead of modifying the global colormap directly
+        cmap = copy.copy(mpl.cm.get_cmap("Blues"))
+        cmap.set_bad(color='red')
 
-        # Create a colormap for different elements in the maze
-        cmap = mpl.colors.ListedColormap(['white', 'black', 'red', 'blue', 'green'])
-        bounds = [0, 0.5, 1.5, 2.5, 3.5, 4]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-
-        # Create a copy of the grid to modify for display
-        display_grid = np.copy(self.grid)
+        masked_grid = np.ma.masked_where(self.grid == 0, self.grid)
         for pos in self.visited:
-            display_grid[pos] = 2  # Mark visited paths
-        display_grid[self.start_pos] = 3  # Mark the start position
-        display_grid[self.end_pos] = 4  # Mark the end position
+            if pos != self.start_pos and pos != self.end_pos:
+                masked_grid[pos] = 0.5
 
         if player_pos:
-            display_grid[player_pos] = 1  # Mark the player's position
+            masked_grid[player_pos] = np.ma.masked
 
-        plt.imshow(display_grid, cmap=cmap, norm=norm)
+        plt.imshow(masked_grid, cmap=cmap, interpolation='none')
         plt.xticks([]), plt.yticks([])
         plt.show()
 
