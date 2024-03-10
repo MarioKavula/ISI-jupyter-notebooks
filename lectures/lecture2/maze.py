@@ -113,17 +113,12 @@ class Player:
 
     def move(self, direction, maze):
         x, y = self.position
-        new_position = {
-            "up": (x - 1, y),
-            "down": (x + 1, y),
-            "left": (x, y - 1),
-            "right": (x, y + 1)
-        }.get(direction, self.position)
-
-        new_x, new_y = new_position
-        if (0 <= new_x < maze.height and 0 <= new_y < maze.width and maze.grid[new_x][new_y] == 0):
-            self.position = new_position
-            maze.mark_visited(self.position)
-            return True
-        else:
-            return False
+        if maze.is_move_valid(self.position, direction):
+            new_pos = {
+                "up": (x - 1, y),
+                "down": (x + 1, y),
+                "left": (x, y - 1),
+                "right": (x, y + 1)
+            }[direction]
+            self.position = new_pos
+            maze.mark_visited(new_pos)
