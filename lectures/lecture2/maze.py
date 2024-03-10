@@ -1,3 +1,5 @@
+import copy
+import matplotlib as mpl
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -62,7 +64,8 @@ class Maze:
         return current_pos == self.end_pos
 
     def display(self, player_pos=None):
-        cmap = plt.cm.Blues
+        # Make a copy of the colormap instead of modifying the global colormap directly
+        cmap = copy.copy(mpl.cm.get_cmap("Blues"))
         cmap.set_bad(color='red')
 
         masked_grid = np.ma.masked_where(self.grid == 0, self.grid)
