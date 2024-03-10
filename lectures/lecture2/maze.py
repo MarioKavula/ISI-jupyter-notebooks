@@ -3,6 +3,8 @@ import matplotlib as mpl
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import time
+from IPython.display import clear_output
 
 class Maze:
     def __init__(self, width, height):
@@ -57,9 +59,9 @@ class Maze:
         self.end_pos = (x, y)  # Update the end position to the last cell visited
         self.grid[self.end_pos] = 0  # Ensure it's marked as a path
     
-    def display(self, player_pos=None):
-
+    def display(self, player_pos=None, pause_time=0.5):
         # Create a colormap for different elements in the maze
+        import matplotlib as mpl
         cmap = mpl.colors.ListedColormap(['white', 'black', 'red', 'blue', 'green'])
         bounds = [0, 0.5, 1.5, 2.5, 3.5, 4]
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
@@ -74,9 +76,12 @@ class Maze:
         if player_pos:
             display_grid[player_pos] = 1  # Mark the player's position
 
+        clear_output(wait=True)  # Clear the previous figure
         plt.imshow(display_grid, cmap=cmap, norm=norm)
         plt.xticks([]), plt.yticks([])
         plt.show()
+        
+        time.sleep(pause_time)  # Pause to visualize the step
 
     def mark_visited(self, pos):
         if self.grid[pos] == 0:

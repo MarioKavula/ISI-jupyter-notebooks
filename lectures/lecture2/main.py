@@ -1,27 +1,46 @@
+from maze import Maze, Player
 
-from maze_game_core import Maze, Player
-import matplotlib.pyplot as plt
+def dfs(maze, position, goal, visited):
+    if position == goal:
+        return [position]
 
-def find_path(maze, start, goal):
-    # Placeholder for pathfinding algorithm implementation
-    # Students will implement their algorithm here
-    pass
+    visited.add(position)
+    possible_moves = maze.get_possible_moves(position)
 
-def setup_game(width, height, start_position):
-    # Initialize the maze and player
-    maze = Maze(width, height)
-    maze.generate_maze()
-    
-    player = Player(start_position)
-    
-    # Display the initial maze
-    maze.display()
-    
-    # Placeholder to call the pathfinding algorithm
-    # find_path(maze, start_position, maze.end_pos)
-    
-    # For now, just display the maze and player's start position
-    print("Maze generated and player initialized at start position:", start_position)
+    for move in possible_moves:
+        new_x, new_y = position
+        if move == "up":
+            new_x -= 1
+        elif move == "down":
+            new_x += 1
+        elif move == "left":
+            new_y -= 1
+        elif move == "right":
+            new_y += 1
 
-# Example setup, these parameters can be customized
-setup_game(20, 20, (1, 1))
+        new_position = (new_x, new_y)
+
+        if new_position not in visited:
+            path = dfs(maze, new_position, goal, visited)
+            if path:
+                return [position] + path
+
+    return None
+
+# Example usage
+maze = Maze(20, 20)
+maze.generate_maze()
+start_position = maze.start_pos
+end_position = maze.end_pos
+visited = set()
+
+path = dfs(maze, start_position, end_position, visited)
+
+if path:
+    print("Path found:", path)
+    for pos in path:
+        maze.mark_visited(pos)
+else:
+    print("No path found.")
+
+maze.display()
