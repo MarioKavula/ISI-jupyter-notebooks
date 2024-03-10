@@ -9,6 +9,7 @@ class Maze:
         self.grid = np.zeros((height, width), dtype=int)
         self.start_pos = (1, 1)
         self.end_pos = (height - 2, width - 2)
+        self.visited = set()
 
     def generate_maze(self):
         self.grid.fill(1)
@@ -53,8 +54,24 @@ class Maze:
 
         self.grid[self.end_pos] = 0
 
-    def display(self):
-        plt.imshow(self.grid, cmap='Blues')
+    def mark_visited(self, pos):
+        if self.grid[pos] == 0:
+            self.visited.add(pos)
+
+    def display(self, player_pos=None):
+        cmap = plt.cm.Blues
+        cmap.set_bad(color='red')
+
+        masked_grid = np.ma.masked_where(self.grid == 0, self.grid)
+        for pos in self.visited:
+            if pos != self.start_pos and pos != self.end_pos:
+                masked_grid[pos] = 0.5
+
+        if player_pos:
+            masked_grid[player_pos] = np.ma.masked
+
+        plt.imshow(masked_grid, cmap=cmap, interpolation='none')
+        plt.xticks([]), plt.yticks([])
         plt.show()
 
 class Player:
@@ -65,9 +82,13 @@ class Player:
         x, y = self.position
         if direction == "up" and maze.grid[x - 1][y] == 0:
             self.position = (x - 1, y)
+            maze.mark_visited(self.position)
         elif direction == "down" and maze.grid[x + 1][y] == 0:
             self.position = (x + 1, y)
+            maze.mark_visited(self.position)
         elif direction == "left" and maze.grid[x][y - 1] == 0:
             self.position = (x, y - 1)
+            maze.mark_visited(self.position)
         elif direction == "right" and maze.grid[x][y + 1] == 0:
             self.position = (x, y + 1)
+            maze.mark_visited(self.position)
