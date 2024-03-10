@@ -80,15 +80,17 @@ class Player:
 
     def move(self, direction, maze):
         x, y = self.position
-        if direction == "up" and maze.grid[x - 1][y] == 0:
-            self.position = (x - 1, y)
+        new_position = {
+            "up": (x - 1, y),
+            "down": (x + 1, y),
+            "left": (x, y - 1),
+            "right": (x, y + 1)
+        }.get(direction, self.position)
+
+        new_x, new_y = new_position
+        if (0 <= new_x < maze.height and 0 <= new_y < maze.width and maze.grid[new_x][new_y] == 0):
+            self.position = new_position
             maze.mark_visited(self.position)
-        elif direction == "down" and maze.grid[x + 1][y] == 0:
-            self.position = (x + 1, y)
-            maze.mark_visited(self.position)
-        elif direction == "left" and maze.grid[x][y - 1] == 0:
-            self.position = (x, y - 1)
-            maze.mark_visited(self.position)
-        elif direction == "right" and maze.grid[x][y + 1] == 0:
-            self.position = (x, y + 1)
-            maze.mark_visited(self.position)
+            return True
+        else:
+            return False
