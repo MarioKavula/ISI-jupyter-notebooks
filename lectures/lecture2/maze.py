@@ -10,7 +10,7 @@ class Maze:
         self.height = height
         self.grid = np.zeros((height, width), dtype=int)
         self.start_pos = (1, 1)
-        self.end_pos = (height - 2, width - 2)
+        self.end_pos = (height - 1, width - 1)
         self.visited = set()
 
     def generate_maze(self):
