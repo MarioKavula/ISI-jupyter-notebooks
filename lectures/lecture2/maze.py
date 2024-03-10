@@ -74,6 +74,39 @@ class Maze:
         plt.xticks([]), plt.yticks([])
         plt.show()
 
+    def get_possible_moves(self, current_pos):
+        x, y = current_pos
+        possible_moves = []
+        if x > 0 and self.grid[x - 1][y] == 0:  # up
+            possible_moves.append("up")
+        if x < self.height - 1 and self.grid[x + 1][y] == 0:  # down
+            possible_moves.append("down")
+        if y > 0 and self.grid[x][y - 1] == 0:  # left
+            possible_moves.append("left")
+        if y < self.width - 1 and self.grid[x][y + 1] == 0:  # right
+            possible_moves.append("right")
+        return possible_moves
+
+    def move_player(self, player, direction):
+        if self.is_move_valid(player.position, direction):
+            player.move(direction, self)
+        return player.position
+
+    def is_move_valid(self, current_pos, direction):
+        x, y = current_pos
+        if direction == "up":
+            return x > 0 and self.grid[x - 1][y] == 0
+        elif direction == "down":
+            return x < self.height - 1 and self.grid[x + 1][y] == 0
+        elif direction == "left":
+            return y > 0 and self.grid[x][y - 1] == 0
+        elif direction == "right":
+            return y < self.width - 1 and self.grid[x][y + 1] == 0
+        return False
+
+    def has_reached_goal(self, current_pos):
+        return current_pos == self.end_pos
+
 class Player:
     def __init__(self, start_pos):
         self.position = start_pos
