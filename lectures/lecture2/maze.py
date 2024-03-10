@@ -57,6 +57,9 @@ class Maze:
     def mark_visited(self, pos):
         if self.grid[pos] == 0:
             self.visited.add(pos)
+    
+    def has_reached_goal(self, current_pos):
+        return current_pos == self.end_pos
 
     def display(self, player_pos=None):
         cmap = plt.cm.Blues
@@ -103,9 +106,6 @@ class Maze:
         elif direction == "right":
             return y < self.width - 1 and self.grid[x][y + 1] == 0
         return False
-
-    def has_reached_goal(self, current_pos):
-        return current_pos == self.end_pos
 
 class Player:
     def __init__(self, start_pos):
