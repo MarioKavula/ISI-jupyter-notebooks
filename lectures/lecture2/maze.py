@@ -1,15 +1,16 @@
 import copy
 import matplotlib as mpl
 import numpy as np
-import matplotlib.pyplot as plt
 import random
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 class Maze:
     def __init__(self, width, height):
         self.width = width
         self.height = height
         self.grid = np.zeros((height, width), dtype=int)
-        self.start_pos = (1, 1)
+        self.start_pos = (2, 2)
         self.end_pos = (height - 2, width - 2)
         self.visited = set()
 
@@ -20,6 +21,7 @@ class Maze:
         stack = [(x, y)]
 
         while stack:
+            x, y = stack[-1]  # Always work with the current position at the top of the stack
             cell = []
             if x + 2 < self.height - 1 and self.grid[x + 2][y] == 1:
                 cell.append("down")
@@ -31,47 +33,59 @@ class Maze:
                 cell.append("left")
 
             if len(cell) > 0:
-                cell_chosen = (random.choice(cell))
+                cell_chosen = random.choice(cell)
 
                 if cell_chosen == "right":
                     self.grid[x][y + 1] = 0
                     self.grid[x][y + 2] = 0
-                    y = y + 2
+                    y += 2
                 elif cell_chosen == "left":
                     self.grid[x][y - 1] = 0
                     self.grid[x][y - 2] = 0
-                    y = y - 2
+                    y -= 2
                 elif cell_chosen == "down":
                     self.grid[x + 1][y] = 0
                     self.grid[x + 2][y] = 0
-                    x = x + 2
+                    x += 2
                 elif cell_chosen == "up":
                     self.grid[x - 1][y] = 0
                     self.grid[x - 2][y] = 0
-                    x = x - 2
+                    x -= 2
 
                 stack.append((x, y))
             else:
-                x, y = stack.pop()
+                stack.pop()
 
-        self.end_pos = (x, y)  # Update the end position to the last cell visited
-        self.grid[self.end_pos] = 0  # Ensure it's marked as a path
-        print(self.grid)
+        # Explicitly set the end position to the bottom-right corner
+        self.end_pos = (self.height - 2, self.width - 2)
+        self.grid[self.start_pos] = 0  # Optional: Ensure start_pos is always path
+        self.grid[self.end_pos] = 0  # Ensure end_pos is always path
     
     def display(self, player_pos=None):
-        # Make a copy of the colormap instead of modifying the global colormap directly
-        cmap = copy.copy(mpl.cm.get_cmap("Blues"))
-        cmap.set_bad(color='red')
+        # Create a new display grid
+        display_grid = np.copy(self.grid)
 
-        masked_grid = np.ma.masked_where(self.grid == 0, self.grid)
+        # Set default values: 0 for paths, 1 for walls
+        display_grid[display_grid == 0] = 0  # Paths as white
+        display_grid[display_grid == 1] = 1  # Walls as black
+
+        # Mark visited positions
         for pos in self.visited:
-            if pos != self.start_pos and pos != self.end_pos:
-                masked_grid[pos] = 0.5
+            display_grid[pos] = 5  # Visited as red
 
+        # Mark the player's position
         if player_pos:
-            masked_grid[player_pos] = np.ma.masked
+            display_grid[player_pos] = 2  # Player as green
 
-        plt.imshow(masked_grid, cmap=cmap, interpolation='none')
+        # Mark the end position
+        display_grid[self.end_pos] = 3  # End as blue
+
+        # Create a colormap
+        cmap = mcolors.ListedColormap(['white', 'black', 'red', 'green', 'blue'])
+        bounds = [0, 1, 2, 3, 4, 5]
+        norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
+        plt.imshow(display_grid, cmap=cmap, norm=norm)
         plt.xticks([]), plt.yticks([])
         plt.show()
 
